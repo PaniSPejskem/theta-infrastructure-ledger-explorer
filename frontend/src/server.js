@@ -8,7 +8,7 @@ var compression = require('compression')
 let port = process.env.PORT || 443;
 
 
-var app = express();
+var app = (module.exports = express());
 var compiler = webpack(config);
 
 app.use(compression());
