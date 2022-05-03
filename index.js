@@ -38,6 +38,7 @@ app.get('*', function (req, res) {
 
 var privateKey = fs.readFileSync('./cert/star_thetatoken_org.key');
 var certificate = fs.readFileSync('./cert/star_thetatoken_org.crt');
+
 var options = {
   key: privateKey,
   cert: certificate
