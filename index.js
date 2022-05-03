@@ -95,13 +95,5 @@ var options = {
   key: privateKey,
   cert: certificate
 };
-var h2 = require('spdy').createServer(options, app);
 
-
-h2.listen(port, function (err) {
-  if (err) {
-    console.log(err);
-    return;
-  }
-  console.log(`Listening at port: ${port}`);
-});
+module.exports = require( 'spdy' ).createServer( options, app );
