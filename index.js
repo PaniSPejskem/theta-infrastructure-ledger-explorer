@@ -1,15 +1,54 @@
-const express = require('express');
+var path = require('path');
+var bodyParser = require('body-parser');
+var express = require('express');
+var webpack = require('webpack');
+var config = require('./webpack.config.js');
+var fs = require('fs');
+var compression = require('compression')
+let port = process.env.PORT || 443;
 
-const app = express();
 
-app.get('/', (req, res) => res.send('Home Page Route'));
+var app = express();
+var compiler = webpack(config);
 
-app.get('/about', (req, res) => res.send('About Page Route'));
+app.use(compression());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(express.static('public'));
 
-app.get('/portfolio', (req, res) => res.send('Portfolio Page Route'));
 
-app.get('/contact', (req, res) => res.send('Contact Page Route'));
+// healthy check from ELB 
+app.get('/ping', function (req, res) {
+  console.log('Receive healthcheck /ping from ELB - ' + req.connection.remoteAddress);
+  res.writeHead(200, {
+    'Content-Type': 'text/plain',
+    'Content-Length': 2
+  });
+  res.write('OK');
+  res.end();
+});
 
-const port = process.env.PORT || 3000;
 
-app.listen(port, () => console.log(`Server running on ${port}, http://localhost:${port}`))
+
+app.get('*', function (req, res) {
+  res.sendFile(path.resolve(__dirname, 'index.html'));
+});
+
+
+
+var privateKey = fs.readFileSync('./cert/star_thetatoken_org.key');
+var certificate = fs.readFileSync('./cert/star_thetatoken_org.crt');
+var options = {
+  key: privateKey,
+  cert: certificate
+};
+var h2 = require('spdy').createServer(options, app);
+
+
+h2.listen(port, function (err) {
+  if (err) {
+    console.log(err);
+    return;
+  }
+  console.log(`Listening at port: ${port}`);
+});
